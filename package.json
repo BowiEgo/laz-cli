@@ -1,0 +1,13 @@
+{
+  "name": "laz-cli",
+  "version": "1.0.0",
+  "description": "",
+  "bin": {
+    "laz": "packages/bin/laz.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.18.0"
+  }
+}
