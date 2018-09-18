@@ -13,13 +13,12 @@ program
   .command('create <app-name>')
   .description('create a new project powered by laz-cli-service')
   .action((name, cmd) => {
-    console.log(name, cmd)
-    // const options = cleanArgs(cmd)
+    const options = cleanArgs(cmd)
     // // --no-git makes commander to default git to true
     // if (process.argv.includes('-g') || process.argv.includes('--git')) {
     //   options.forceGit = true
     // }
-    // require('../lib/create')(name, options)
+    require('../lib/create')(name, options)
   })
 
 
@@ -33,7 +32,7 @@ program
 
 program.on('--help', () => {
   console.log('')
-  console.log(`  Run ${chalk.cyan(`vue <command> --help`)} for detailed usage of given command.`)
+  console.log(`  Run ${chalk.cyan(`laz <command> --help`)} for detailed usage of given command.`)
   console.log('')
 })
 
@@ -57,4 +56,19 @@ program.parse(process.argv)
 
 if (!process.argv.slice(2).length) {
   program.outputHelp()
+}
+
+// commander passes the Command object itself as options,
+// extract only actual options into a fresh object.
+function cleanArgs (cmd) {
+  const args = {}
+  cmd.options.forEach(o => {
+    const key = o.long.replace(/^--/, '')
+    // if an option is not present and Command has a method with the same name
+    // it should not be copied
+    if (typeof cmd[key] !== 'function' && typeof cmd[key] !== 'undefined') {
+      args[key] = cmd[key]
+    }
+  })
+  return args
 }

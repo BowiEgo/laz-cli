@@ -8,6 +8,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "commander": "^2.18.0"
+    "commander": "^2.18.0",
+    "string.prototype.padstart": "^3.0.0"
   }
 }
