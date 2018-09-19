@@ -11,7 +11,7 @@ program
 
 program
   .command('create <project-name>')
-  .description('create a new project powered by laz-cli-service')
+  .description('create a new project')
   .action((name, cmd) => {
     const options = cleanArgs(cmd)
     // // --no-git makes commander to default git to true
