@@ -1,5 +1,6 @@
 const fs = require('fs-extra')
 const path = require('path')
+const chalk = require('chalk')
 const inquirer = require('inquirer')
 const { getPromptModules } = require('./util/createTools')
 const { stopSpinner } = require('./util/spinner')
@@ -24,13 +25,24 @@ async function create (projectName, options) {
         return
       }
     } else {
-      // const { action } = await inquirer.prompt([
-      //   {
-      //     name: 'action',
-      //     type: 'list',
-
-      //   }
-      // ])
+      const { action } = await inquirer.prompt([
+        {
+          name: 'action',
+          type: 'list',
+          message: `Target directory ${chalk.cyan(targetDir)} already exists. Pick an action:`,
+          choices: [
+            { name: 'Overwrite', value: 'overwrite' },
+            { name: 'Merge', value: 'merge' },
+            { name: 'Cancel', value: false }
+          ]
+        }
+      ])
+      if (!action) {
+        return
+      } else if (action === 'overwrite') {
+        console.log(`\nRemoving ${chalk.cyan(targetDir)}...`)
+        await fs.remove(targetDir)
+      }
     }
   }
 

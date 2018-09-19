@@ -10,7 +10,7 @@ program
   .parse(process.argv)
 
 program
-  .command('create <app-name>')
+  .command('create <project-name>')
   .description('create a new project powered by laz-cli-service')
   .action((name, cmd) => {
     const options = cleanArgs(cmd)

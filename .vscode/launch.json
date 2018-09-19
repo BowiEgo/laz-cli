@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "启动程序",
-      "program": "${workspaceFolder}/packages/bin/laz.js"
+      "program": "${workspaceFolder}/packages/lib/create.js"
     }
   ]
 }
