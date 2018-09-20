@@ -12,6 +12,7 @@ program
 program
   .command('create <project-name>')
   .description('create a new project')
+  .option('--offline', 'use cached template')
   .action((name, cmd) => {
     const options = cleanArgs(cmd)
     // // --no-git makes commander to default git to true

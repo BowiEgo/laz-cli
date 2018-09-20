@@ -1,9 +1,15 @@
+const fs = require('fs-extra')
+const exists = fs.existsSync
+const path = require('path')
 const chalk = require('chalk')
 const download = require('download-git-repo')
 const inquirer = require('inquirer')
+const home = require('user-home')
 const writeFileTree = require('./util/writeFileTree')
+const generate = require('./util/generate')
 const { hasYarn } = require('./util/env')
 const { logWithSpinner, stopSpinner } = require('./util/spinner')
+const { isLocalPath, getTemplatePath} = require('./util/local-path')
 const { error, done } = require('./util/logger')
 const { installDeps } = require('./util/installDeps')
 
@@ -19,10 +25,11 @@ module.exports = class Creator {
     this.context = context
     this.type = null
     this.typePrompt = this.resolveTypePrompt()
+    this.localTemplate = null
   }
 
   async create (cliOptions = {}, preset = null) {
-    console.log('create')
+    this.cliOptions = cliOptions
     const { name, context } = this
 
     // logWithSpinner(`✨`, `Creating project in ${chalk.yellow(context)}.`)
@@ -31,7 +38,25 @@ module.exports = class Creator {
       preset = await this.promptAndResolvePreset()
       this.type = preset.type
     }
-    await this.downloadAndGenerate()
+
+    const template = this.resolveTemplate()
+
+    if (isLocalPath(template)) {
+      if (exists(template)) {
+        logWithSpinner(`⚙  Generate local template...`)
+        await this.generateTemplate(template)
+      } else {
+        error(`Local template not found.`)
+        return
+      }
+    } else {
+      console.log('isExists', exists(this.localTemplate))
+      if (exists(this.localTemplate)) {
+        await fs.remove(this.localTemplate)
+      }
+      await this.downloadAndGenerate(template)
+    }
+
     
     // const pkg = {
     //   name,
@@ -53,32 +78,37 @@ module.exports = class Creator {
   }
 
   /**
-   * Download a generate from a template repo.
-   *
-   * @param {String} template
+   * Download and generate from a template repo.
    */
-  downloadAndGenerate () {
+  downloadAndGenerate (template) {
     return new Promise ((resolve, reject) => {
-      const template = this.resolveTemplate()
+      const to = this.context
+
       logWithSpinner(`⚙  Downloading template. This might take a while...`)
       log()
-      download(template, this.context, err => {
+      
+      download(template, this.localTemplate, err => {
         stopSpinner()
         if (err) {
           error(err)
           reject()
         }
         done('Template download is complete')
-        resolve()
+        this.generateTemplate()
       })
     })
   }
 
   resolveTemplate () {
+    let tmpFolderName = this.type.replace(' ', '-')
+    this.localTemplate = path.join(home, '.laz-templates', tmpFolderName)
+    if (this.cliOptions.offline) {
+      return this.localTemplate
+    }
+
     const gitRepo = `bowiego/laz-templates`
-    const gitBranch = this.type.replace(' ', '-')
-    const templatePath = `${gitRepo}#${gitBranch}`
-    return templatePath
+    const gitBranch = tmpFolderName
+    return `${gitRepo}#${gitBranch}`
   }
 
   async promptAndResolvePreset (answers = null) {
@@ -86,6 +116,20 @@ module.exports = class Creator {
       answers = await inquirer.prompt(this.resolveFinalPrompts())
     }
     return answers
+  }
+
+  generateTemplate () {
+    stopSpinner()
+    return new Promise ((resolve, reject) => {
+      generate(this.name, this.localTemplate, this.context, err => {
+        if (err) {
+          error(err)
+          reject()
+        }
+        log(`Project ${this.name} generate successed`)
+        resolve()
+      })
+    })
   }
 
   resolveTypePrompt () {

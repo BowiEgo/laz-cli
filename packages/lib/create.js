@@ -1,4 +1,5 @@
 const fs = require('fs-extra')
+const exists = fs.existsSync
 const path = require('path')
 const chalk = require('chalk')
 const inquirer = require('inquirer')
@@ -12,7 +13,7 @@ async function create (projectName, options) {
   const name = inCurrent ? path.relative('../', cwd) : projectName
   const targetDir = path.resolve(cwd, projectName || '.')
 
-  if (fs.existsSync(targetDir)) {
+  if (exists(targetDir)) {
     if (inCurrent) {
       const { ok } = await inquirer.prompt([
         {
